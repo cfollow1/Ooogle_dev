@@ -1,0 +1,22 @@
+<?php
+///*
+// Settings for Orim
+
+//
+//
+
+
+
+
+define("__TIMEZONE__","America/Chicago");
+
+////////MySQL Settings///////////
+define("__MYSQL_HOST__","");
+define("__MYSQL_USER__","");
+define("__MYSQL_DATABASE__","");
+define("__MYSQL_PASSWORD__","");
+
+
+
+?>
+
