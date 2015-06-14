@@ -1022,11 +1022,22 @@ function get_boss_genes_and_hits($locus){
 	global $mysqli;
 	global $boss;
 	global $annotations;
+	global $global_loci;
 
 	$boss_name = $settings['boss_org'];
 	$type =	$settings['boss_type'];
 	list($chr,$start_stop) = (explode(":",$locus));
 	list($left,$right) = (explode ("..",$start_stop));
+	$chr = $global_loci['boss'][$locus]['chr'] ;
+        $left = $global_loci['boss'][$locus]['start'];
+        $right =$global_loci['boss'][$locus]['stop'] ;
+
+
+	
+
+
+	print "Getting boss genes for $chr, $start_stop";
+
 	$in_range_start = "start >= $left  AND start <= $right" ; //if($start >= $left && $start < $right);
 	$in_range_stop 	= "stop  <= $right AND stop  >= $left"  ; //if($stop <= $right && $stop >= $left);
 	$overlap  		= "start <= $left  AND stop  >= $right" ; //overlap entire interval

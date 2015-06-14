@@ -40,11 +40,11 @@ class data{
 
 	}
 
-	public function validate($_POST){
+	#Modify the post variable!
+	public function validate(&$_POST){
 #print_r($_POST);
 		$_POST['intervals_query'] = $this->cleanIntervals($_POST['intervals_query']);
 		$_POST['intervals_subject'] = $this->cleanIntervals($_POST['intervals_subject']);
-		$validate = array();
 		if(! $this->validate_helper($_POST['organism_query'])){
 			return array('error'=>'Please select a query organism');
 		}
@@ -91,9 +91,10 @@ class data{
 	#Should probably store this so dont call DB again and again
 	public function validateChromosomes($organism,$chr){
 		$chromosomes = $this->getChromosomes($organism);
-		$prepends = array('','0','chromosome','chr','Chr','gm','Gm','A','a','bd','Bd');
+		$prepends = array('','0','chromosome','chr','Chr','gm','Gm','A','a','bd','Bd','chromosome_');
 		foreach($prepends as $prefix){
 			if(isset($chromosomes[$prefix . $chr])){
+				print "Found $prefix $chr<br>";
 				return ($prefix . $chr);
 			}
 		}
@@ -180,7 +181,7 @@ class data{
 
 	#These are order dependent
 	function stripChr($chr){
-		$chr = preg_replace('/chromosome/i','',"$chr");
+		$chr = preg_replace('/chromosome[_]*/i','',"$chr");
 		$chr = preg_replace('/chr/i','',"$chr");
 		$chr = preg_replace('/gm([0-9]{2})/i',"$1","$chr");
 		$chr = preg_replace('/A([0-9]{2})/i',"$1","$chr");
@@ -194,7 +195,7 @@ class data{
 
 #Returns a list of Key Value Pairs of organisms
 	public function getOrganisms(){
-		$organismsInfo =  $this->database->select("Organism_info", "*");;
+		$organismsInfo =  $this->database->select("organism_info", "*",array('enabled'=>'1'));;
 		$organisms = array();
 		foreach ($organismsInfo as $row){
 			$name = $row['name'];

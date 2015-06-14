@@ -75,7 +75,14 @@ function retrofit(){
 	else{
 		$get['interval_opt'] = 'true';
 	}
-	header("Location: table.php?".http_build_query($get));
+	$http_query;
+	foreach($get as $key=>$value){
+		$http_query .= "&$key=$value";
+	}	
+	$http_query = substr($http_query,1);
+
+	#header("Location: table.php?".http_build_query($get));
+	header("Location: table.php?".$http_query);
 
 
 
