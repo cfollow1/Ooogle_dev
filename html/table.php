@@ -120,9 +120,14 @@ function getAnnotations(&$mysqli,&$settings,&$annotations)
 	foreach(array_keys($annotations) as $geneID){
 		$temp_annotations_keys[] = "'$geneID'";
 	}
+
+	
+
 	//Get from phytozome_annot table
 	$query = 
 		"SELECT id,pfam,panther,kog,kegg_orth,kegg_ec,araHit,araSymbol,araDefline,riceHit,riceSymbol,riceDefline FROM phytozome_annot where id in (" . implode (",", array_values($temp_annotations_keys)) . ")";
+#	print "<br>".$query."<br>";
+
 	$result = $mysqli->query($query) or die($mysqli->error.__LINE__);
 	while($row = $result->fetch_assoc()) {
 		$id = $row['id']; #remove ID field from the annotatations as it is not an annotation
@@ -134,13 +139,19 @@ function getAnnotations(&$mysqli,&$settings,&$annotations)
 	}
 	//Get from annotations table
 	$query = 
-		"SELECT id,fsf_pfam,synonyms,other_synonyms,defline FROM annotations where id in (" . implode (",", array_values($temp_annotations_keys)) . ")";
+		"SELECT id,fsf_pfam,synonyms,other_synonyms,defline FROM annotations where id in ("
+		. implode (",", array_values($temp_annotations_keys)) . ")";
 	$result = $mysqli->query($query) or die($mysqli->error.__LINE__);
+	
+#	print "<br>".$query."<br>";
+
 	while($row = $result->fetch_assoc()) {
 		$id = $row['id'];
+		
 		unset ($row['id']); #remove ID field from the annotatations as it is not an annotation
 			foreach(array_keys ($row) as $key)
 			{
+#				print "Adding $key to $id<br>";
 				$annotations[$id][$key]   = $row[$key];
 			}
 	}
@@ -225,12 +236,12 @@ function generateTables(&$boss,&$settings,&$annotations,&$hits){
 				$hit_e	  = $hit_array[4];
 				$hit_p 	  = $hit_array[5];
 				if(isset($settings['evalue'])){
-				$cutoff = $settings['evalue'];
+					$cutoff = $settings['evalue'];
 				}
 				else{
 					$cutoff = null;
 				}
-				
+
 
 
 
@@ -276,15 +287,15 @@ function generateTables(&$boss,&$settings,&$annotations,&$hits){
 					$table.= "<tr><td>$index</td><td>$boss_gene</td><td colspan='7'>No Hit Found</td></tr>";
 				}
 				if(isset($cutoff)){
-				if($boss_e != 0.0){
-					#print "Comparing[" . $boss_e . "]" . " 1e-$cutoff" . "<br>";					
-					if($boss_e < "1e-$cutoff"){
-					#	print "$boss_e < 1e-$cutoff <br>";
-					}else{
-					#	print "$boss_e > 1e-$cutoff <br>";
-						continue;
+					if($boss_e != 0.0){
+#print "Comparing[" . $boss_e . "]" . " 1e-$cutoff" . "<br>";					
+						if($boss_e < "1e-$cutoff"){
+#	print "$boss_e < 1e-$cutoff <br>";
+						}else{
+#	print "$boss_e > 1e-$cutoff <br>";
+							continue;
+						}
 					}
-				}
 				}
 
 
@@ -408,7 +419,7 @@ function generateTables(&$boss,&$settings,&$annotations,&$hits){
 			if($_GET['interval_opt'] == 'false'){
 				$interval_or_genome = "(Entire Genome)";
 			}
-			
+
 
 			print "
 				<div id='$locus-$org-div' class='table-holder' style='border:solid 1px;float:left'>
@@ -516,7 +527,7 @@ function getInIntervals($geneID,$org)
 		return $loci_list;
 	}
 	foreach(array_keys($global_loci[$org]) as $locus){
-	
+
 		$chr 	= $global_loci[$org][$locus]['chr'];
 		$start 	= $global_loci[$org][$locus]['start'];
 		$stop	= $global_loci[$org][$locus]['stop'];
@@ -531,47 +542,6 @@ function getInIntervals($geneID,$org)
 		}
 
 	}
-
-
-	/*	
-		if($geneChr != $chr){
-		continue;
-		} 
-		if(  ($geneStart <= $interval_start && $geneStop >= $interval_start ) || //Check left side of interval
-		($geneStart >= $interval_start && $geneStart <= $interval_stop ) || //Check right side of interval
-		($geneStart <= $interval_start && $geneStop >= $interval_stop)
-		){
-		$loci_list[] = $locus;
-		}
-		}
-	 */
-/*
-   print "Checking locus $locus <br>";
-   print "GeneStart:{$geneStart} < {$interval_start}" ;
-   $left = ($geneStart < $interval_start)?'true':'false' ;
-   $right = ($geneStart >= $interval_start && $geneStart <= $interval_stop)?'true':'false' ;
-   $middle= ($geneStart <= $interval_start && $geneStop >= $interval_stop)?'true':'false' ;
-
-
-
-   print $left . "<br>" . $right . "<br>" . $middle ."<br>";
-
- */
-/*	$in_range_start = "start >= $left  AND start <= $right" ; //if($start >= $left && $start < $right);
-	$in_range_stop 	= "stop  <= $right AND stop  >= $left"  ; //if($stop <= $right && $stop >= $left);
-	$overlap  		= "start <= $left  AND stop  >= $right" ; //overlap entire interval
- */
-/*if($chr == $geneChr){
-  if( 
-  ($geneStart >= $start && $geneStart <= $stop) ||
-  ($geneStop >= $stop && $geneStop <= $start) ||
-  ($geneStart <= $start && $geneStop >= $stop) ){
-  $loci_list[] = $locus;
-  }
-  } 
- */
-
-
 
 return $loci_list;
 }
@@ -599,12 +569,21 @@ function getAnnotationHTML($id,$locus,$table_id,$org)
 		</tr>
 		";
 
-	//sort($annotations[$id]);
-	ksort($annotations[$id]);
-	//arsort($annotations[$id]);
+	if(isset($annotations[$id])){
+		ksort($annotations[$id]);
+	}
+
+	#print "Getting annotations for $id<br>";	
+
+
 
 	foreach((array_keys($annotations[$id])) as $key){
-		if(!($annotations[$id][$key]) || strlen(($annotations[$id][$key])) < 1 || $annotations[$id][$key] == 'null'){ continue; };
+		if(!isset($annotations[$id][$key]) ||
+				strlen(($annotations[$id][$key])) < 1 ||
+				$annotations[$id][$key] == 'null')
+		{
+			continue; 
+		};
 		if($key == 'fsf_pfam' ){
 
 		};
@@ -758,10 +737,10 @@ function checkQuery()
 	foreach($boss_inputs as $input){
 		//Attempt to fix sticky finger caused errors 
 		if(strlen($input) ==0){
-		continue;
+			continue;
 		}
 		$temp = (explode(":",$input));
-		
+
 		$start_stop = explode("..",$temp[1]);
 		$chr = $temp[0];
 		$start = $start_stop[0];
@@ -770,9 +749,9 @@ function checkQuery()
 		if(isset($chr) && isset($start) && isset($stop) && checkValidLocus($chr,$start,$stop) )	{
 			$successful_inputs++;
 			$org = $settings['boss_org'];
-			#print "Chr for $org = BEFORE[$chr] AFTER";
+#print "Chr for $org = BEFORE[$chr] AFTER";
 			$chr = $data->validateChromosomes($org,$chr);
-		#	print $chr."<br>";
+#	print $chr."<br>";
 			$global_loci['boss'][$input]['chr'] = $chr;
 			$global_loci['boss'][$input]['start'] = $start;
 			$global_loci['boss'][$input]['stop'] = $stop;
@@ -786,7 +765,7 @@ function checkQuery()
 
 	}
 	if($number_of_inputs != $successful_inputs){
-		#print "<br>removed boss loci";
+#print "<br>removed boss loci";
 		//print_r($bad_loci);
 	}
 	$orgs = explode(",",($settings['orgs']));
@@ -803,9 +782,9 @@ function checkQuery()
 
 			if(isset($chr) && isset($start) && isset($stop) && checkValidLocus($chr,$start,$stop) )	{
 				//$successful_inputs++;
-			#	print "Chr for $org = BEFORE[$chr] AFTER";
+#	print "Chr for $org = BEFORE[$chr] AFTER";
 				$chr = $data->validateChromosomes($org,$chr);
-			#	print $chr."<br>";
+#	print $chr."<br>";
 				$global_loci[$org][$org_locus]['chr'] = $chr;
 				$global_loci[$org][$org_locus]['start'] = $start;
 				$global_loci[$org][$org_locus]['stop'] = $stop;
@@ -901,7 +880,7 @@ function getCommonAnnotations($geneID,$hitID){
 
 				if(isset($boss_explode[1])){
 					$boss_pfam		= explode (",",	$boss_explode[1]);
-					}	
+				}	
 				if(isset($hit_explode[1])){
 					$hit_pfam		= explode (",", $hit_explode[1]);
 				}
@@ -977,7 +956,7 @@ function getBoss(){
 			get_boss_genes_and_hits($locus);
 		}
 		else{
-			#print "<br>Skipping bad locus $locus";
+#print "<br>Skipping bad locus $locus";
 		}
 
 	}
@@ -990,7 +969,7 @@ function get_org_genes_and_hits(){
 
 	//Check to see if any boss loci passed or fail
 	if(!$boss){
-	print "<br><br><br> No Genes found in any input boss loci. Check to make sure you are using the correct chromosome/scaffold (eg. Chr1 vs 1 vs Scaff_1)";
+		print "<br><br><br> No Genes found in any input boss loci. Check to make sure you are using the correct chromosome/scaffold (eg. Chr1 vs 1 vs Scaff_1)";
 		exit()	;
 	}
 #Store all genes into geneIDs, ALL GENEIDS must be unique!
@@ -1023,6 +1002,7 @@ function getHitLocations($geneIDs,$type)
 	}
 	//Execute query;
 	$query = "SELECT id,chr,start,stop FROM ".$type."_blast WHERE id IN (". (implode(",",$genes2)) . ")";
+	$query = "SELECT id,chr,start,stop FROM blast WHERE id IN (". (implode(",",$genes2)) . ")";
 	$results = array();
 	$result = $mysqli->query($query) or die($mysqli->error.__LINE__);
 	while($row = $result->fetch_assoc()) {
@@ -1030,6 +1010,8 @@ function getHitLocations($geneIDs,$type)
 		$hits[$id]['chr'] 	= $row['chr'];
 		$hits[$id]['start']	= $row['start'];
 		$hits[$id]['stop'] 	= $row['stop'];
+	#	print "FOr $id, chr='{$row['chr']}' start={$row['start']} stop={$row['stop']}";
+
 		$annotations[$id]	= NULL;
 	}
 }
