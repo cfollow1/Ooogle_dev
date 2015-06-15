@@ -8,6 +8,7 @@
 <script type="text/javascript" src="./js/tablesort.js"></script>
 <script type="text/javascript" src="./js/jquery-1.8.2.min.js"></script>
 <script type="text/javascript" src="./js/resizable-tables.js"></script>
+<script type="text/javascript" src="./js/download.js"></script>
 <script type='text/javascript'>
 
 function toggle(id){
@@ -18,13 +19,15 @@ function toggle(id){
 
 
 
+
 </script>
 </head>
 <!-- CSS -->
 <body>
-
 <button type='button' onclick='$("#instructions").toggle()' style='margin-left:15px;margin-top:5px' >Show/Hide Legend</button>
 <br>
+
+
 <table id='instructions' style='' >
 <thead><tr><th>Header</th><th>What does it mean?</th></tr></thead>
 <tr><td>Expect</td><td>Expect value of hit found for the query sequence.</td></tr>
@@ -33,6 +36,11 @@ function toggle(id){
 <tr><td>%ID</td><td>Percent identity of the top hit of the query sequence's top hit .</td></tr>
 <tr><td>RBH</td><td>Reciprocal Best Hit: Whether or not the hit's top hit is the query sequence</td></tr>
 </table>
+
+<br>
+
+
+
 
 <?php
 //Steps
@@ -76,6 +84,7 @@ $global_loci	  ; //a nice copy of the loci
 $boss     ; //boss info
 $hits;	  ; //location info of the boss hits
 $annotations;
+$csv;
 main();
 
 function main(){
@@ -84,6 +93,7 @@ function main(){
 	global $annotations;
 	global $boss;
 	global $hits;
+	global $csv;
 #1 Check to see that query is OK
 	checkQuery();
 	//DONT FORGET TO SANTIIZE EVERYTHING HERE FOR SQL INPUT
@@ -121,7 +131,7 @@ function getAnnotations(&$mysqli,&$settings,&$annotations)
 		$temp_annotations_keys[] = "'$geneID'";
 	}
 
-	
+
 
 	//Get from phytozome_annot table
 	$query = 
@@ -142,12 +152,12 @@ function getAnnotations(&$mysqli,&$settings,&$annotations)
 		"SELECT id,fsf_pfam,synonyms,other_synonyms,defline FROM annotations where id in ("
 		. implode (",", array_values($temp_annotations_keys)) . ")";
 	$result = $mysqli->query($query) or die($mysqli->error.__LINE__);
-	
+
 #	print "<br>".$query."<br>";
 
 	while($row = $result->fetch_assoc()) {
 		$id = $row['id'];
-		
+
 		unset ($row['id']); #remove ID field from the annotatations as it is not an annotation
 			foreach(array_keys ($row) as $key)
 			{
@@ -186,6 +196,8 @@ function generateTables(&$boss,&$settings,&$annotations,&$hits){
 	$interval	 = $settings['interval_opt'];
 	$organism_list = explode(",",$settings['orgs']);
 	$boss_org = $settings['boss_org'];
+	global $csv;
+
 
 #for each boss locus, generate a table for each org
 	foreach(array_keys($boss) as $locus){
@@ -306,7 +318,9 @@ function generateTables(&$boss,&$settings,&$annotations,&$hits){
 				//Generate annotation tabels here
 				$boss_annotations_table = getAnnotationHTML($boss_gene, "$locus-boss",$boss_table_id,$boss_org);
 				$hit_annotations_table  = getAnnotationHTML($boss_hit,"$locus-hit",$hit_table_id,$org);
-
+				$boss_annotation_array = getAnnotationArray($boss_gene,$boss_org);
+				$hit_annotation_array = getAnnotationArray($boss_hit,$org);
+	
 
 				$boss_location = "{$boss[$locus][$boss_gene]['chr']}:{$boss[$locus][$boss_gene]['start']}..{$boss[$locus][$boss_gene]['stop']}";
 				$hit_location  = "{$hits[$boss_hit]['chr']}:{$hits[$boss_hit]['start']}..{$hits[$boss_hit]['stop']}";
@@ -360,6 +374,54 @@ function generateTables(&$boss,&$settings,&$annotations,&$hits){
 				else{
 					$hit_markers = "<tr><td>markers</td><td>$hit_markers</td></tr>";
 				}
+				$values = array($boss_gene,$boss_alias[0],$boss_location,$boss_length,
+						$rbh_result,$hit_alias[0],$hit_location,$hit_length,$possible_rbh_id,$boss_e,$boss_p,$hit_e,$hit_p);
+
+				
+				$csv[$locus][$org]
+
+				$row = array(
+				'Query Organism' => $boss_org,
+				'Query Interval' => $locus,
+				'Query ID' => $boss_gene,
+				'Query Location' => $boss_location,
+				'Subject Organism' => $org,
+				'Subject Interval' => implode(',',$in_intervals),
+				'Subject ID' => $boss_hit,
+				'Subject Location' => $hit_location,
+				'Query Blast Expect' => $boss_e,
+				'Subject Blast Expect' => $hit_e,
+				'Query Top Hit'	=>$possible_rbh_id;
+				'Query Annotations' => $boss_annotation_array,
+				'Subject Annotations' => $hit_annotation_array;	
+	
+				);
+				
+				$csv[$locus][$org]['boss_org'] = $boss_org;
+				$csv[$locus][$org]['boss'] = $boss_gene;
+				$csv[$locus][$org]['boss_alias'] = $boss_alias[0];
+				$csv[$locus][$org]['boss_location'] = $boss_location;
+				$csv[$locus][$org]['boss_length'] = $boss_length;
+				$csv[$locus][$org]['boss_e'] = $boss_e;
+				$csv[$locus][$org]['boss_p'] = $boss_p;
+
+				$csv[$locus][$org]['rbh'] = $rbh_result;
+				$csv[$locus][$org]['hit'] = $boss_hit;
+				$csv[$locus][$org]['hit_org'] = $org;
+				$csv[$locus][$org]['hit_alias'] = $hit_alias[0];;
+				$csv[$locus][$org]['hit_location'] = $hit_location;
+				$csv[$locus][$org]['hit_length'] = $hit_length;
+				$csv[$locus][$org]['hit_tophit'] = $possible_rbh_id;
+				$csv[$locus][$org]['hit_in_intervals'] = implode(",",$in_intervals);
+
+				$csv[$locus][$org]['hit_e'] = $hit_e;
+				$csv[$locus][$org]['hit_p'] = $hit_p;
+
+				$csv[$locus][$org]['boss_annotations'] = $boss_annotation_array;
+				$csv[$locus][$org]['hit_annotations'] = $hit_annotation_array;
+
+
+				print "<br>";
 
 				$boss_hit_table =
 					"<table class='innertable ' >
@@ -434,6 +496,18 @@ function generateTables(&$boss,&$settings,&$annotations,&$hits){
 		}
 
 	}
+
+#	print_r($csv);
+$json = json_encode($csv);
+$json = str_replace("<br>","",$json);
+
+print"
+<br>
+<form id='download' action='download.php' method='post'>
+<input type='hidden' name='json' value='$json'/>
+<input type='submit' value='Download' >
+</form>";
+
 }
 
 
@@ -543,12 +617,38 @@ function getInIntervals($geneID,$org)
 
 	}
 
-return $loci_list;
+	return $loci_list;
 }
 
 
 
+function getAnnotationArray($id,$org)
+{
+	global $annotations;
+	if(isset($annotations[$id])){
+		ksort($annotations[$id]);
+	}
+	$annotatationArray;
+	foreach((array_keys($annotations[$id])) as $key){
+		if(!isset($annotations[$id][$key]) ||
+				strlen(($annotations[$id][$key])) < 1 ||
+				$annotations[$id][$key] == 'null')
+		{
+			continue; 
+		};
+		if($key == 'fsf_pfam' ){
 
+		};
+		$value = preg_replace("/</", "(", $annotations[$id][$key]);
+		$value = preg_replace("/>/", ")<br>", $value);
+	#	$value = linkify($key,$value);
+		if($org =='Athaliana_167' && $key =='araHit'){
+			$key = 'RiceHit';
+		}
+		$annotationArray[$key] = $value;
+	}
+	return $annotationArray;
+}
 
 //Returns a string with the annotations
 function getAnnotationHTML($id,$locus,$table_id,$org)
@@ -572,11 +672,7 @@ function getAnnotationHTML($id,$locus,$table_id,$org)
 	if(isset($annotations[$id])){
 		ksort($annotations[$id]);
 	}
-
 	#print "Getting annotations for $id<br>";	
-
-
-
 	foreach((array_keys($annotations[$id])) as $key){
 		if(!isset($annotations[$id][$key]) ||
 				strlen(($annotations[$id][$key])) < 1 ||
@@ -1010,7 +1106,7 @@ function getHitLocations($geneIDs,$type)
 		$hits[$id]['chr'] 	= $row['chr'];
 		$hits[$id]['start']	= $row['start'];
 		$hits[$id]['stop'] 	= $row['stop'];
-	#	print "FOr $id, chr='{$row['chr']}' start={$row['start']} stop={$row['stop']}";
+#	print "FOr $id, chr='{$row['chr']}' start={$row['start']} stop={$row['stop']}";
 
 		$annotations[$id]	= NULL;
 	}
@@ -1029,14 +1125,14 @@ function get_boss_genes_and_hits($locus){
 	list($chr,$start_stop) = (explode(":",$locus));
 	list($left,$right) = (explode ("..",$start_stop));
 	$chr = $global_loci['boss'][$locus]['chr'] ;
-        $left = $global_loci['boss'][$locus]['start'];
-        $right =$global_loci['boss'][$locus]['stop'] ;
+	$left = $global_loci['boss'][$locus]['start'];
+	$right =$global_loci['boss'][$locus]['stop'] ;
 
 
-	
 
 
-	print "Getting boss genes for $chr, $start_stop";
+
+#print "Getting boss genes for $chr, $start_stop";
 
 	$in_range_start = "start >= $left  AND start <= $right" ; //if($start >= $left && $start < $right);
 	$in_range_stop 	= "stop  <= $right AND stop  >= $left"  ; //if($stop <= $right && $stop >= $left);

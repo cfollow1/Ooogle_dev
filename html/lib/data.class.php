@@ -58,6 +58,8 @@ class data{
 				$error = "Invalid intervals entered for {$_POST['organism_query']} ({$valid_intervals['error']})";
 				return array('error'=>$error);
 			}
+			#$_POST['intervals_query'] = $this->compressIntervals(
+			#			   $_POST['intervals_query']);
 		}
 
 
@@ -94,14 +96,42 @@ class data{
 		$prepends = array('','0','chromosome','chr','Chr','gm','Gm','A','a','bd','Bd','chromosome_');
 		foreach($prepends as $prefix){
 			if(isset($chromosomes[$prefix . $chr])){
-				print "Found $prefix $chr<br>";
+				#print "Found $prefix $chr<br>";
 				return ($prefix . $chr);
 			}
 		}
 		return false;
 	}
-	
 
+#	private function compressIntervals($list_of_intervals){
+  #		$intervals = explode("\n",$list_of_intervals);
+ #               $compressed;
+#		#Combine Chr
+#		foreach($intervals as $interval){
+    #                    if(strlen($interval) == 0){
+   #                             continue;
+  #                      }
+ #                       $chr_interval = explode(":",$interval);
+#			$chr = $chr_interval[0];
+#		        $compressed[$chr][$chr_interval] = null;
+#		}	
+#		foreach (array_keys($compressed) as $chr){
+#			$chr_intervals = $compressed[$chr];
+#			foreach($chr_intervals as $interval){
+#
+#				foreach($chr_intervals as $check_against
+#	
+#			}
+#		}
+#	}	
+
+	private function overlap($interval1,$interval2){
+#	list($start1,$stop1) = explode ("-",$interval);
+#	list($start2,$stop2) = explode ("-",$interval2);
+	
+    	#return max(x1,y1) <= min(x2,y2)
+
+}
 
 	private function validateChromosomes2($_POST){
 		if(isset($_POST['organism_query']) && isset($_POST['intervals_query'])){
