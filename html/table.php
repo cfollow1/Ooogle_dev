@@ -377,48 +377,62 @@ function generateTables(&$boss,&$settings,&$annotations,&$hits){
 				$values = array($boss_gene,$boss_alias[0],$boss_location,$boss_length,
 						$rbh_result,$hit_alias[0],$hit_location,$hit_length,$possible_rbh_id,$boss_e,$boss_p,$hit_e,$hit_p);
 
-				
-				$csv[$locus][$org]
+			
+				$rbh_human = $rbh =='rbh'?'true':'false';				
 
 				$row = array(
 				'Query Organism' => $boss_org,
 				'Query Interval' => $locus,
 				'Query ID' => $boss_gene,
-				'Query Location' => $boss_location,
+				'Query Alias' => $boss_alias[0],
+				#'Query Location' => $boss_location,
+				'Query Chr' =>  $boss[$locus][$boss_gene]['chr'],
+				'Query Start' => $boss[$locus][$boss_gene]['start'],
+				'Query Stop' => $boss[$locus][$boss_gene]['stop'],
 				'Subject Organism' => $org,
-				'Subject Interval' => implode(',',$in_intervals),
+				'Subject Interval' => implode('|',$in_intervals),
 				'Subject ID' => $boss_hit,
-				'Subject Location' => $hit_location,
+				'Subject Alias' => $hit_alias[0],
+				#'Subject Location' => $hit_location,
+				'Subject Chr' => $hits[$boss_hit]['chr'],
+				'Subject Start' => $hits[$boss_hit]['start'],
+				'Subject Stop' => $hits[$boss_hit]['stop'],
 				'Query Blast Expect' => $boss_e,
 				'Subject Blast Expect' => $hit_e,
-				'Query Top Hit'	=>$possible_rbh_id;
-				'Query Annotations' => $boss_annotation_array,
-				'Subject Annotations' => $hit_annotation_array;	
-	
+				'Query Top Hit'	=>$possible_rbh_id,
+				'Query Annotations' => implode(" ",$boss_annotation_array),
+				'Subject Annotations' => implode(" ",$hit_annotation_array),	
+				'Query Annotations Test' => $boss_annotation_array,
+				'Subject Annotations Test' => $hit_annotation_array,	
+				'Reciprocal Best Hit' => $rbh_human
 				);
-				
-				$csv[$locus][$org]['boss_org'] = $boss_org;
-				$csv[$locus][$org]['boss'] = $boss_gene;
-				$csv[$locus][$org]['boss_alias'] = $boss_alias[0];
-				$csv[$locus][$org]['boss_location'] = $boss_location;
-				$csv[$locus][$org]['boss_length'] = $boss_length;
-				$csv[$locus][$org]['boss_e'] = $boss_e;
-				$csv[$locus][$org]['boss_p'] = $boss_p;
+				foreach($row as $key=>$val){
+					$row[$key] = str_replace(","," ",$val);
+				}
+				$csv[$locus][$org][$boss_gene][]=$row;			
+	
+#				$csv[$locus][$org]['boss_org'] = $boss_org;
+#				$csv[$locus][$org]['boss'] = $boss_gene;
+#				$csv[$locus][$org]['boss_alias'] = $boss_alias[0];
+#				$csv[$locus][$org]['boss_location'] = $boss_location;
+#				$csv[$locus][$org]['boss_length'] = $boss_length;
+#				$csv[$locus][$org]['boss_e'] = $boss_e;
+#				$csv[$locus][$org]['boss_p'] = $boss_p;
+#
+#				$csv[$locus][$org]['rbh'] = $rbh_result;
+#				$csv[$locus][$org]['hit'] = $boss_hit;
+#				$csv[$locus][$org]['hit_org'] = $org;
+#				$csv[$locus][$org]['hit_alias'] = $hit_alias[0];;
+#				$csv[$locus][$org]['hit_location'] = $hit_location;
+#				$csv[$locus][$org]['hit_length'] = $hit_length;
+#				$csv[$locus][$org]['hit_tophit'] = $possible_rbh_id;
+#				$csv[$locus][$org]['hit_in_intervals'] = implode(",",$in_intervals);
+#
+#				$csv[$locus][$org]['hit_e'] = $hit_e;
+#				$csv[$locus][$org]['hit_p'] = $hit_p;
 
-				$csv[$locus][$org]['rbh'] = $rbh_result;
-				$csv[$locus][$org]['hit'] = $boss_hit;
-				$csv[$locus][$org]['hit_org'] = $org;
-				$csv[$locus][$org]['hit_alias'] = $hit_alias[0];;
-				$csv[$locus][$org]['hit_location'] = $hit_location;
-				$csv[$locus][$org]['hit_length'] = $hit_length;
-				$csv[$locus][$org]['hit_tophit'] = $possible_rbh_id;
-				$csv[$locus][$org]['hit_in_intervals'] = implode(",",$in_intervals);
-
-				$csv[$locus][$org]['hit_e'] = $hit_e;
-				$csv[$locus][$org]['hit_p'] = $hit_p;
-
-				$csv[$locus][$org]['boss_annotations'] = $boss_annotation_array;
-				$csv[$locus][$org]['hit_annotations'] = $hit_annotation_array;
+#				$csv[$locus][$org]['boss_annotations'] = $boss_annotation_array;
+#				$csv[$locus][$org]['hit_annotations'] = $hit_annotation_array;
 
 
 				print "<br>";
@@ -500,6 +514,9 @@ function generateTables(&$boss,&$settings,&$annotations,&$hits){
 #	print_r($csv);
 $json = json_encode($csv);
 $json = str_replace("<br>","",$json);
+$json = str_replace("'","",$json);
+$json = str_replace("<","",$json);
+$json = str_replace(">","",$json);
 
 print"
 <br>

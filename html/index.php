@@ -5,6 +5,7 @@
 <meta charset="utf-8">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+<script src="js/examples.js"></script>
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
 <link rel="stylesheet" href="css/tooltip.css">
@@ -112,8 +113,12 @@ echo "<div class='form-group'>";
 echo $html->dropdown($data->getChromosomes($organism_query),'chromosome_query','View Chromosomes',$chromosome_query);
 echo "</div>";
 echo "<h4>Step 2: Choose intervals on the genome: $tooltip</h4> ";
+echo "<p class='form-control'>
+	<a href='#' onClick='example1()'>Example 1 </a></p>
+      <p class='form-control' > 
+	<a href='#' onClick='example2()'>Example 2 </a>
+      </p><br>";
 echo "<textarea class='form-control' name='intervals_query' placeholder='Chr#:start-stop' cols=50 rows=10>$intervals_query</textarea>";
-
 #SUBJECT
 echo "<h4>Step 3: Select an organism to search against.</h4>";
 echo $html->dropdown($data->getOrganisms(),'organism_subject','Select Organism',$organism_subject,true);
