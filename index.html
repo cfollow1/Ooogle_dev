@@ -1,0 +1,52 @@
+<!-- 
+	Author: Christian Followell
+	Property of University of Illinois Applied Research Institute
+
+ -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Clustering Graphic</title>
+	<link rel="stylesheet" href="_/base.css">
+	<link rel="stylesheet" href="http://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+	<link rel="stylesheet" href="style.css">
+</head>
+<body>
+	
+	<button id='linkToggle'>Hide Links</button>
+	
+	<div id='menu'>
+		<div id='accordion'>
+			<div class='header'>Numerical Link Filters</div>
+			<div id='LinkSliders'></div>
+			<div class='header'>Categorical Link Filters</div>
+			<div id='CatLinkFilters'></div>
+			<div class='header'>Link Length Filters</div>
+			<div id='LengthLinkFilters'></div>			
+			<div class='header'>Numerical Node Filters</div>
+			<div id='NodeSliders'></div>			
+			<div class='header'>Categorical Node Filters</div>
+			<div id='CatNodeFilters'></div>
+			<div class='header'>Color By</div>
+			<div id='ColorFilters'></div>
+		</div>
+	</div>
+	
+	<div id='svg'></div>
+	
+	<div class='absolute tooltip'></div>
+	
+	<div class='LinkInfoTooltip'></div>
+	
+	<div class='NumInfoTooltip'></div>
+	
+	<div id='scatterTooltip'></div>
+	
+	<script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
+	<script src="http://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+	<script src="_/d3.min.js"></script>
+	<script src="filter.js"></script> 
+	<script src="script.js"></script>
+</body>
+</html>
